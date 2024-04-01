@@ -12,6 +12,8 @@
 
 // possibly make the background moving?
 
+// ********* turn the size factors of creatures into variables as well *********
+
 
 
 let option;
@@ -26,8 +28,16 @@ let orange = "#FFAF05";
 let green = "#70D130";
 let blue = "#41D1CB";
 
+
+// scene 1 object
 let mini; // a creature
+
+// scene two object
 let miniTwo;
+
+//scene three object
+let threeA;
+let threeB;
 
 // Creature position
 let x;
@@ -55,7 +65,11 @@ function setup() {
   y = 400;
 
   mini = new Creature(400,400);
+
   miniTwo = new Creature(500,600);
+
+  threeA = new Creature(300,400);
+  threeB = new Creature(500,400);
 
   //smile = false;
 }
@@ -78,7 +92,7 @@ function draw() {
   rect(0,470,800,350);
   
   mini.blink();
-  mini.jump();
+  mini.sideJump();
   //mini.checkHover();
   //mini.checkSmile();
   mini.smileIfHover();
@@ -116,6 +130,23 @@ if (option == 2){
 if (option == 3){
   c = blue;
   background(c);
+
+
+
+
+  threeA.blink();
+  threeA.smileIfHover();
+  threeA.walk();
+  threeA.tickle();
+  threeA.smileIfNear(threeB);
+  threeA.display();
+
+  threeB.blink();
+  threeB.smileIfHover();
+  threeB.walk();
+  threeB.tickle();
+  threeB.smileIfNear(threeA);
+  threeB.display();
 }
 
 } // end of draw
@@ -141,9 +172,32 @@ constructor(x,y){
 
   let closed = false;
   this.closed = closed;
+
+  let direction = 1;
+  this.direction = direction;
+
+  let speed = 1;
+  this.speed = speed;
 }
 
-jump(){
+walk(){
+  // ** PROBLEM WITH IF STATEMENT (I KNOW WHAT'S WRONG BUT FORGOT HOW TO SOLVE IT)
+
+  this.speed = 2;
+
+  this.y = 10*sin(frameCount*0.3) + this.initialY;
+  this.x = this.x + this.direction*this.speed;
+
+  if(this.x > width){
+    this.direction = -1;
+  }
+  if (this.x < 0){
+    this.direction = 1;
+  }
+  
+}
+
+sideJump(){
   this.x = 70*cos(frameCount*0.1) + this.initialX;
   this.y = 40*sin(frameCount * 0.20) + this.initialY;
 }
@@ -193,6 +247,15 @@ eyesNotClosed(){
   closed = false;
 }
 */
+
+// referenced a coding train video provided on github
+smileIfNear(other){ // creatures smile when they near each other
+  // ** HOW DO I CHECK WHEN THE OBJECTS ARE CLOSE TO EACH OTHER? -- DISTANCE
+  let distance = dist(this.x,this.y,other.x,other.y);
+  if (distance < 25*2){
+    this.smile = true;
+  }
+}
 
 smileIfHover(){
   let distance = dist(mouseX,mouseY,this.x,this.y);
