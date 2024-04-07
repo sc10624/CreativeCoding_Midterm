@@ -1,31 +1,17 @@
-// general idea (for now)
-// creature jumps around in the screen, smiles when mouse hovers over it, and gets tickled (jiggles) when clicked
-// after a certain number of clicks the creature will start following the mouse (draw an "image" for the mouse using shapes (location = (mouseX, mouseY) & make it jiggle when it's touched by the creature?)
-// but when the mouse moves towards it and gets too close it runs away & maintains distance & giggles
-
-// in a different screen, generate multiple creatures moving around randomly & make them giggle when they touch each other
-
-// peek-a-boo
-// hide and seek
-
-// make the legs and arms move too
-
-// possibly make the background moving?
-
-// ********* turn the size factors of creatures into variables as well *********
-
-
-
+// for switching screens
 let option;
 
 //let time;
 //let lastTime;
 
+// time since the sketch is first run
 let time;
 
 let c; // background color
 let orange = "#FFAF05";
 let green = "#70D130";
+let lightGreen = "#A2E057";
+let darkGreen = "#1FA823";
 let blue = "#41D1CB";
 
 
@@ -33,11 +19,22 @@ let blue = "#41D1CB";
 let mini; // a creature
 
 // scene two object
+let bushes = [];
+let grass = [];
+/*
+let bush1;
+let bush2;
+let bush3;
+*/
+//let grass1;
 let miniTwo;
 
 //scene three object
+let threeObjects = [];
+/*
 let threeA;
 let threeB;
+*/
 
 // Creature position
 let x;
@@ -64,12 +61,41 @@ function setup() {
   x = 400;
   y = 400;
 
+  //------------scene 1--------------
   mini = new Creature(400,400);
 
+  //------------scene 2---------------
+  // fixed y, random x
+  //let bushX = 100;
+  let bushY = 125;
+  for (let i = 0; i < 3; i++){
+    bushes[i] = new Bushes(random(100,width-300),bushY); //** MAKE THE SPACING EVEN
+    bushY += 300;
+  } 
+
+  let grassX = 0;
+  let grassY = 50;
+  for (let i = 0; i < 100; i++){
+    grass[i] = new Grass(grassX,grassY)
+    grassX += 50;
+  }
+  /*
+  bush1 = new Bushes(550,200);
+  bush2 = new Bushes(100,400);
+  bush3 = new Bushes(550,700);
+  grass1 = new Grass(50,50);
+  */
   miniTwo = new Creature(500,600);
 
+  //------------scene 3--------------
+  for (let i = 0; i < 10; i++){
+    threeObjects[i] = new Creature(random(0,width), random(0,height));
+  }
+  /*
   threeA = new Creature(300,400);
   threeB = new Creature(500,400);
+  */
+
 
   //smile = false;
 }
@@ -84,6 +110,8 @@ function draw() {
 
   //----------------------------------SCENE 1------------------------------------
   //** DRAW SOME BACKGROUND? SOMETHING LIKE A PLAYGROUND WOULD BE CUTE
+  // ** DRAW MORE OBJECTS
+  // ** MAYBE MAKE AN ARRAY FOR BACKGROUND COLORS AND MAKE IT CHANGE EVERY TIME YOU TICKLE THE OBJECT (BUT IN CYCLE, NOT RANDOMLY)
   if (option == 1){
   c = orange;
   background(c);
@@ -98,28 +126,50 @@ function draw() {
   mini.smileIfHover();
   mini.tickle();
   mini.display();
-}
+} // option 1 ends
   
 
 
 
 
 //----------------------------------SCENE 2------------------------------------
-// the creature plays a hide and seek game (this scene will have little to no interaction, try to make it a looped animation)
-// there are objects for the creature to hide & the creature sneakily moves between the objects
-// it gets startled when you catch it
-// it startles you and giggles at the end when it finally "catches" you
+// the creature moves between & hides behind bushes
+// if possible, make it slightly peek over the bushes and giggle at you
+// (just an idea) make it speed up once you tickle it?
+
 if (option == 2){
   c = green;
   background(c);
-  
 
+  //**PLANT THE GRASS ALL OVER THE SCREEN USING ARRAY**
+  //grass1.display();
+
+  for(i = 0; i < 50; i++){
+    grass[i].display();
+  }
+
+  miniTwo.hide(bushes[0]);
   miniTwo.blink();
+  miniTwo.walk(); // **MAKE THE OBJECT MOVE FROM ONE BUSH TO ANOTHER, THEN STOP AT THAT LOCATION FOR A FEW SECONDS**
   miniTwo.smileIfHover();
+  miniTwo.tickle();
   miniTwo.display();
 
+
+  for(i = 0; i < 3; i++){
+    bushes[i].display();
+  }
+
+  
+
+  /*
+  bush1.display();
+  bush2.display();
+  bush3.display();
+  */
+  
   //print(miniTwo.x);
-}
+} // option 2 ends
 
 
 
@@ -127,27 +177,37 @@ if (option == 2){
 
 //-----------------------------------SCENE 3--------------------------------------
 // creatures play tag? chaser & chased switch roles once one tags the other
+//***** MAKE THE MOVEMENTS MORE RANDOM!! *****
 if (option == 3){
   c = blue;
   background(c);
 
+  for(let i = 0; i < 10; i ++){
+    threeObjects[i].blink();
+    threeObjects[i].smileIfHover();
+    threeObjects[i].wander();
+    threeObjects[i].tickle();
+    // ** FIGURE OUT HOW TO USE giggleIfNear FUNCTION WITH NOT JUST ONE OBJECT BUT EVERY OTHER OBJECT
+    threeObjects[i].giggleIfNearMany();
+    threeObjects[i].display();
+  }
 
-
-
+  /*
   threeA.blink();
   threeA.smileIfHover();
   threeA.walk();
   threeA.tickle();
-  threeA.smileIfNear(threeB);
+  threeA.giggleIfNear(threeB);
   threeA.display();
 
   threeB.blink();
   threeB.smileIfHover();
   threeB.walk();
   threeB.tickle();
-  threeB.smileIfNear(threeA);
+  threeB.giggleIfNear(threeA);
   threeB.display();
-}
+  */
+} // option 3 ends
 
 } // end of draw
 
@@ -156,6 +216,7 @@ if (option == 3){
 
 
 class Creature { //**put this in a separate file later
+
 
 constructor(x,y){
   this.initialX = x;
@@ -173,20 +234,36 @@ constructor(x,y){
   let closed = false;
   this.closed = closed;
 
-  let direction = 1;
+  let direction = random([-1,1]);
   this.direction = direction;
 
-  let speed = 1;
+  let speed = random(1,5);
   this.speed = speed;
 }
 
-walk(){
-  // ** PROBLEM WITH IF STATEMENT (I KNOW WHAT'S WRONG BUT FORGOT HOW TO SOLVE IT)
 
-  this.speed = 2;
+walk(){ // walk within the screen
+  this.speed = 2; // fixed the speed bc it's walk
 
+  this.x = this.x + (this.direction*this.speed);
   this.y = 10*sin(frameCount*0.3) + this.initialY;
-  this.x = this.x + this.direction*this.speed;
+
+  if(this.x > width || this.x < 0){
+    this.direction *= -1;
+  }
+  /*
+  if (this.x < 0){
+    this.direction *= 1;
+  }
+  */
+} // walk ends
+
+
+wander(){ // ** MAKE Y DIRECTION CHANGE TOO
+  //this.speed = 2; // let the speed be random bc it's wander
+
+  this.x = this.x + (this.direction*this.speed);
+  this.y = 10*sin(frameCount*0.3) + this.initialY;
 
   if(this.x > width){
     this.direction = -1;
@@ -194,13 +271,25 @@ walk(){
   if (this.x < 0){
     this.direction = 1;
   }
-  
-}
+} // wander ends
+
+
+//***************************************IN PROGRESS*******************************************
+hide(object){  
+  this.initialX = object.x;
+  this.initialY = object.y;
+
+  //print(initialX);
+
+} // hide ends
+//*********************************************************************************************
+
 
 sideJump(){
   this.x = 70*cos(frameCount*0.1) + this.initialX;
   this.y = 40*sin(frameCount * 0.20) + this.initialY;
-}
+} // sideJump ends
+
 
 tickle(){ // ** make the character laugh and shake its limbs when tickled -- need a boolean variable that indicates whether it is being tickled or not
   if(mouseIsPressed){
@@ -217,12 +306,15 @@ tickle(){ // ** make the character laugh and shake its limbs when tickled -- nee
     this.y = this.y + random(-10,10);
 
     // ** make the lines more elaborate & add another set of similar lines on the bottom left of the character
+    stroke(0);
+    strokeWeight(3);
     line(this.x+45, this.y-20, this.x+random(60,65), this.y-random(25,30));
     line(this.x+45, this.y-30, this.x+random(55,60), this.y-random(35,40));
     line(this.x+35, this.y-30, this.x+random(40,45), this.y-random(40,45));
-    }
-  }
-}
+    } // hover if statement
+  } // mouseIsPressed if statement
+} // tickle ends
+
 
 /*
 tickle(){
@@ -248,14 +340,71 @@ eyesNotClosed(){
 }
 */
 
+
 // referenced a coding train video provided on github
-smileIfNear(other){ // creatures smile when they near each other
-  // ** HOW DO I CHECK WHEN THE OBJECTS ARE CLOSE TO EACH OTHER? -- DISTANCE
+///*
+giggleIfNear(other){ // creatures smile when they near each other
+  // ** HOW DO I CHECK WHEN THE OBJECTS ARE CLOSE TO EACH OTHER? -- for statement going through the array
+
+  //***************************************************************
+
+  // COME BACK TO THIS ONE LATER TODAY!!!!!!! MUST BE FIGURED OUT BY TODAY OR ELSE I DIE
+
+  //***************************************************************
+
+  //for (let i = 0; i < threeObjects.length; i ++){ // for statement checking the distance and hover status of objects
   let distance = dist(this.x,this.y,other.x,other.y);
   if (distance < 25*2){
     this.smile = true;
+
+    // tickling
+    this.x = this.x + random(-10,10);
+    this.y = this.y + random(-10,10);
+
+    // ** make the lines more elaborate & add another set of similar lines on the bottom left of the character
+    line(this.x+45, this.y-20, this.x+random(60,65), this.y-random(25,30));
+    line(this.x+45, this.y-30, this.x+random(55,60), this.y-random(35,40));
+    line(this.x+35, this.y-30, this.x+random(40,45), this.y-random(40,45));
+  } // if statement ends
+  //} // for statement ends
+} // giggleIfNear ends
+//*/
+
+
+giggleIfNearMany(){ // creatures smile and giggle when they near each other
+  //***************************************************************
+  // DOESN'T WORK
+  //***************************************************************
+  /*
+  for (let i = 0; i < threeObjects.length; i ++){ // for statement checking the distance and hover status of objects
+    if (this != threeObjects[i]){
+    let distance = dist(this.x,this.y,threeObjects[i].x,threeObjects[i].y);
+      if (distance < 25*2){
+        // smiling (giggling)
+        this.smile = true;
+
+        // tickling (giggling)
+        this.x = this.x + random(-10,10);
+        this.y = this.y + random(-10,10);
+
+        // ** make the lines more elaborate & add another set of similar lines on the bottom left of the character
+        line(this.x+45, this.y-20, this.x+random(60,65), this.y-random(25,30));
+        line(this.x+45, this.y-30, this.x+random(55,60), this.y-random(35,40));
+        line(this.x+35, this.y-30, this.x+random(40,45), this.y-random(40,45));
+      } // if statement ends
+    } // if statement ends
+  } // for statement ends
+  */
+
+  // WORKS!!!
+  for (let i = 0; i < threeObjects.length; i ++){
+    if(this != threeObjects[i]){
+    this.giggleIfNear(threeObjects[i]);
+    }
   }
-}
+} // giggleIfNear ends
+
+
 
 smileIfHover(){
   let distance = dist(mouseX,mouseY,this.x,this.y);
@@ -277,8 +426,6 @@ smileIfHover(){
   }
   //this.smileIfHover();
 
-
-
   /*
   if (hover == true){
     this.smileYes();
@@ -289,7 +436,7 @@ smileIfHover(){
 
   //print(hover);
   //print(smile);
-}
+} // smileIfHover ends
 
 /*
 smileIfHover(){
@@ -307,6 +454,7 @@ checkSmile(){ //****************JUST FOR TROUBLESHOOTING
 }
 */
 
+
 blink(){ // this works but the interval is off
   if(time%5 == 0){ //adjust the interval later..
     //mini.eyesClosed();
@@ -315,9 +463,11 @@ blink(){ // this works but the interval is off
     //mini.eyesNotClosed();
     this.closed = false;
   }
-}
+} // blink ends
+
 
 display(){
+stroke(0);
 strokeWeight(3);
 
 // left arm
@@ -351,15 +501,51 @@ if(this.smile == true){
 }
 } // display ends
 
-} // creature ends
 
-/*
-function mousePressed(){
-  if(smile == true){
-    this.tickle();
+} // creature class ends
+
+
+
+
+
+class Bushes {
+
+  constructor(x,y){
+    this.x = x;
+    this.y = y;
   }
-}
-*/
+  
+  // **MAKE THE SIZE CHANGEABLE**
+  display(){
+    stroke(0);
+    strokeWeight(10);
+    fill(darkGreen);
+    ellipse(this.x,this.y-5,90,90);
+    ellipse(this.x+50,this.y,90,90);
+    ellipse(this.x+100,this.y-5,90,90);
+    ellipse(this.x+25,this.y-40,90,90);
+    ellipse(this.x+75,this.y-40,90,90);
+    noStroke();
+    ellipse(this.x,this.y-5,90,90);
+    ellipse(this.x+50,this.y,90,90);
+    ellipse(this.x+100,this.y-5,90,90);
+    ellipse(this.x+25,this.y-40,90,90);
+    ellipse(this.x+75,this.y-40,90,90);
+  } // display ends
+} // Bushes ends
+
+class Grass{
+  constructor(x,y){
+    this.x = x;
+    this.y = y;
+  }
+
+  display(){
+  noStroke();
+  fill(lightGreen);
+  triangle(this.x,this.y-15,this.x-15,this.y+15,this.x+15,this.y+15);
+  } // display ends
+} // Grass ends
 
 
 
